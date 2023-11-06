@@ -430,6 +430,9 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
     const QCommandLineOption SetMetaverseverseURL("mv", "Set your metaverse api (Default: https://mv.overte.org/server)", "DIRECTORY_SERVER_HOSTNAME");
     parser.addOption(SetMetaverseverseURL);
 
+    const QCommandLineOption setAPIToken("api-token", "You can set your API token here or leave empty for auto generated.", "api-token");
+    parser.addOption(setAPIToken);
+
     const QCommandLineOption forceCrashReportingOption("forceCrashReporting", "Force crash reporting to initialize.");
     parser.addOption(forceCrashReportingOption);
 
@@ -507,6 +510,24 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
     if(parser.isSet(SetMetaverseverseURL)) {
         settingsToSet.insert("private/selectedMetaverseURL", parser.value(SetMetaverseverseURL));
     }
+
+    if (parser.isSet(setAPIToken)) {
+        settingsToSet.insert("private/api_token", parser.value(setAPIToken));
+    } else {
+        static const char alphanum[] =
+            "0123456789"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "abcdefghijklmnopqrstuvwxyz";
+        QString api_key_string;
+        for (int i = 0; i < 64; ++i) {
+            api_key_string += alphanum[rand() % (sizeof(alphanum) - 1)];
+        }
+
+        qDebug() << "[Domain Server API key]" << api_key_string << "\n";
+        
+        settingsToSet.insert("api/api_token", QVariant(api_key_string));
+    }
+
     if (parser.isSet(forceCrashReportingOption)) {
         _forceCrashReporting = true;
     }
