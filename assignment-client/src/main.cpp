@@ -11,18 +11,24 @@
 
 #include <BuildInfo.h>
 #include <SharedUtil.h>
+#include "SettingManager.h"
+#include "SettingHelpers.h"
 
 #include "AssignmentClientApp.h"
+#include <SettingInterface.h>
 #include <crash-handler/CrashHandler.h>
 
 
 int main(int argc, char* argv[]) {
     setupHifiApplication(BuildInfo::ASSIGNMENT_CLIENT_NAME);
 
+    //QVariantMap settingsToSet;
+
+    Setting::init();
+
     AssignmentClientApp app(argc, argv);
     auto &ch = CrashHandler::getInstance();
     ch.startMonitor(&app);
-
 
     int acReturn = app.exec();
     qDebug() << "assignment-client process" <<  app.applicationPid() << "exiting with status code" << acReturn;

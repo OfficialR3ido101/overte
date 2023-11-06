@@ -403,7 +403,7 @@ DomainServer::DomainServer(int argc, char* argv[]) :
     initializeMetadataExporter();
 }
 
-void DomainServer::parseCommandLine(int argc, char* argv[]) {
+void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &settingsToSet) {
     QCommandLineParser parser;
     parser.setApplicationDescription("Overte Domain Server");
     const QCommandLineOption versionOption = parser.addVersionOption();
@@ -426,6 +426,9 @@ void DomainServer::parseCommandLine(int argc, char* argv[]) {
 
     const QCommandLineOption logOption("logOptions", "Logging options, comma separated: color,nocolor,process_id,thread_id,milliseconds,keep_repeats,journald,nojournald", "options");
     parser.addOption(logOption);
+
+    const QCommandLineOption SetMetaverseverseURL("mv", "Set your metaverse api (Default: https://mv.overte.org/server)", "DIRECTORY_SERVER_HOSTNAME");
+    parser.addOption(SetMetaverseverseURL);
 
     const QCommandLineOption forceCrashReportingOption("forceCrashReporting", "Force crash reporting to initialize.");
     parser.addOption(forceCrashReportingOption);
@@ -501,6 +504,9 @@ void DomainServer::parseCommandLine(int argc, char* argv[]) {
         }
     }
 
+    if(parser.isSet(SetMetaverseverseURL)) {
+        settingsToSet.insert("private/selectedMetaverseURL", parser.value(SetMetaverseverseURL));
+    }
     if (parser.isSet(forceCrashReportingOption)) {
         _forceCrashReporting = true;
     }
