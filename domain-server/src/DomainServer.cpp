@@ -16,6 +16,7 @@
 #include <random>
 #include <iostream>
 #include <chrono>
+#include <regex>
 
 #include <QDir>
 #include <QJsonDocument>
@@ -29,6 +30,7 @@
 #include <QUrlQuery>
 #include <QCommandLineParser>
 #include <QUuid>
+#include <QRegularExpression>
 
 #include <AccountManager.h>
 #include <AssetClient.h>
@@ -430,7 +432,7 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
     const QCommandLineOption SetMetaverseverseURL("mv", "Set your metaverse api (Default: https://mv.overte.org/server)", "DIRECTORY_SERVER_HOSTNAME");
     parser.addOption(SetMetaverseverseURL);
 
-    const QCommandLineOption setAPIToken("api-token", "You can set your API token here or leave empty for auto generated.", "api-token");
+    const QCommandLineOption setAPIToken("api-token", "You can set your API token here or leave empty for auto generated. Needs to be higher or equal to 64");
     parser.addOption(setAPIToken);
 
     const QCommandLineOption forceCrashReportingOption("forceCrashReporting", "Force crash reporting to initialize.");
@@ -511,21 +513,25 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
         settingsToSet.insert("private/selectedMetaverseURL", parser.value(SetMetaverseverseURL));
     }
 
-    if (parser.isSet(setAPIToken)) {
-        settingsToSet.insert("private/api_token", parser.value(setAPIToken));
-    } else {
-        static const char alphanum[] =
-            "0123456789"
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            "abcdefghijklmnopqrstuvwxyz";
-        QString api_key_string;
-        for (int i = 0; i < 64; ++i) {
-            api_key_string += alphanum[rand() % (sizeof(alphanum) - 1)];
-        }
+    QRegularExpression pattern("[A-Za-z0-9_]+");
+    bool match = pattern.match(parser.value(setAPIToken)).hasMatch();
+    
+    if (parser.isSet(setAPIToken) && parser.value(setAPIToken).length() >= 64 && match) {
+
+        settingsToSet.insert("developer/api_token", parser.value(setAPIToken));
+    
+    } else if (parser.value(setAPIToken).isEmpty() && parser.isSet(setAPIToken)) {
+
+        QUuid api_part_one = QUuid::createUuid();
+        QString uuid_string_one = api_part_one.toString().remove('-');
+        QUuid api_part_two = QUuid::createUuid();
+        QString uuid_string_two = api_part_two.toString().remove('-');
+
+        QString api_key_string = uuid_string_one + uuid_string_two;
 
         qDebug() << "[Domain Server API key]" << api_key_string << "\n";
         
-        settingsToSet.insert("api/api_token", QVariant(api_key_string));
+        settingsToSet.insert("developer/api_token", QVariant(api_key_string));
     }
 
     if (parser.isSet(forceCrashReportingOption)) {

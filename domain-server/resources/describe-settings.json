@@ -2,18 +2,6 @@
     "version": 2.6,
     "settings": [
         {
-            "name": "api",
-            "label": "Development / API",
-            "settings": [
-                {
-                    "name": "api_token",
-                    "label": "API Token",
-                    "type": "string",
-                    "default": ""
-                }
-            ]
-        },
-        {
             "name": "private",
             "label": "Directory Server",
             "settings": [
@@ -203,6 +191,18 @@
                     "help": "This is the client ID from the WordPress plugin configuration.",
                     "advanced": true,
                     "backup": false
+                }
+            ]
+        },
+        {
+            "name":"developer",
+            "label":"Developer Settings",
+            "settings": [
+                {
+                    "name": "api_token",
+                    "label": "API Token",
+                    "type": "string",
+                    "help": "Token to speak to Restful API."
                 }
             ]
         },

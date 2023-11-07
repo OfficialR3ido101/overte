@@ -453,8 +453,10 @@ const QString AUTHENTICATION_ENABLE_OAUTH2 = "authentication.enable_oauth2";
 const QString AUTHENTICATION_OAUTH2_URL_PATH = "authentication.oauth2_url_path";
 const QString AUTHENTICATION_WORDPRESS_URL_BASE = "authentication.wordpress_url_base";
 const QString AUTHENTICATION_PLUGIN_CLIENT_ID = "authentication.plugin_client_id";
+const QString AUTHENTICATION_API_TOKEN = "developer.api_token";
 const QString MAXIMUM_USER_CAPACITY = "security.maximum_user_capacity";
 const QString MAXIMUM_USER_CAPACITY_REDIRECT_LOCATION = "security.maximum_user_capacity_redirect_location";
+
 
 SharedNodePointer DomainGatekeeper::processAgentConnectRequest(const NodeConnectionData& nodeConnection,
                                                                const QString& username,
