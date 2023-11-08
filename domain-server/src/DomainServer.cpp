@@ -432,7 +432,7 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
     const QCommandLineOption SetMetaverseverseURL("mv", "Set your metaverse api (Default: https://mv.overte.org/server)", "DIRECTORY_SERVER_HOSTNAME");
     parser.addOption(SetMetaverseverseURL);
 
-    const QCommandLineOption setAPIToken("api-token", "You can set your API token here or leave empty for auto generated. Needs to be higher or equal to 64");
+    const QCommandLineOption setAPIToken("api-token", "You can set your API token here or leave empty for auto generated. Needs to be higher or equal to 64", "api-token");
     parser.addOption(setAPIToken);
 
     const QCommandLineOption forceCrashReportingOption("forceCrashReporting", "Force crash reporting to initialize.");
@@ -520,7 +520,7 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
 
         settingsToSet.insert("developer/api_token", parser.value(setAPIToken));
     
-    } else if (parser.value(setAPIToken).isEmpty() && parser.isSet(setAPIToken)) {
+    } else if (parser.value(setAPIToken).isEmpty() && parser.isSet(setAPIToken) && parser.value(setAPIToken) == "generate") {
 
         QUuid api_part_one = QUuid::createUuid();
         QString uuid_string_one = api_part_one.toString().remove('-');
