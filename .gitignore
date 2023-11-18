@@ -130,3 +130,5 @@ interface/compiledResources
 # Act local GitHub Actions
 .secret
 
+.kdev4/overte.kdev4
+overte.kdev4
