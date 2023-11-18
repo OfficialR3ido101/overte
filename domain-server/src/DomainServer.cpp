@@ -77,6 +77,7 @@ const QString PUBLIC_SOCKET_PORT_KEY = "network_port";
 const QString DOMAIN_UPDATE_AUTOMATIC_NETWORKING_KEY = "automatic_networking";
 const int MIN_PORT = 1;
 const int MAX_PORT = 65535;
+const int MIN_API_TOKEN_LENGTH = 64;
 
 int const DomainServer::EXIT_CODE_REBOOT = 234923;
 
@@ -432,6 +433,9 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
 
     const QCommandLineOption forceCrashReportingOption("forceCrashReporting", "Force crash reporting to initialize.");
     parser.addOption(forceCrashReportingOption);
+    
+    const QCommandLineOption apiTokenOption("api-token", "Set API token minimal is 64 characters long", "api-token");
+    parser.addOption(apiTokenOption);
 
     QStringList arguments;
     for (int i = 0; i < argc; ++i) {
@@ -509,6 +513,22 @@ void DomainServer::parseCommandLine(int argc, char* argv[], QVariantMap &setting
     }
     if (parser.isSet(forceCrashReportingOption)) {
         _forceCrashReporting = true;
+    }
+
+    if (parser.isSet(apiTokenOption) && parser.value(apiTokenOption).length() >= MIN_API_TOKEN_LENGTH) {
+        //TODO: Set API token.
+    } else {
+        QUuid str1 = QUuid::createUuid();
+        QUuid str2 = QUuid::createUuid();
+        QString stringPart1 = str1.toString();
+        QString stringPart2 = str2.toString();
+        stringPart1.remove(QChar('{')).remove(QChar('}')).remove(QChar('-'));
+        stringPart2.remove(QChar('{')).remove(QChar('}')).remove(QChar('-'));
+
+        QString finalApiToken = stringPart1 + stringPart2;
+
+        //TODO: Set API token if its not more than or equal to MIN_API_TOKEN_LENGTH
+        
     }
 }
 
@@ -2820,19 +2840,39 @@ QString DomainServer::operationToString(const QNetworkAccessManager::Operation &
 std::pair<bool, QString>  DomainServer::isAuthenticatedRequest(HTTPConnection* connection) {
 
     static const QByteArray HTTP_COOKIE_HEADER_KEY = "Cookie";
+    static const QByteArray HTTP_API_TOKEN_HEADER_KEY = "x-overte-api-key";
     static const QString ADMIN_USERS_CONFIG_KEY = "oauth.admin-users";
     static const QString ADMIN_ROLES_CONFIG_KEY = "oauth.admin-roles";
     static const QString BASIC_AUTH_USERNAME_KEY_PATH = "security.http_username";
     static const QString BASIC_AUTH_PASSWORD_KEY_PATH = "security.http_password";
+    static const QString HTTP_API_TOKEN = "security.api_token";
+    static const QString HTTP_API_TOKEN_ENABLE = "security.api_token_enable";
     const QString COOKIE_UUID_REGEX_STRING = HIFI_SESSION_COOKIE_KEY + "=([\\d\\w-]+)($|;)";
 
     const QByteArray UNAUTHENTICATED_BODY = "You do not have permission to access this domain-server.";
+    const QByteArray API_TOKEN_UNAUTHENTICATED = "You did not provide a valid API token.";
 
     QVariant adminUsersVariant = _settingsManager.valueForKeyPath(ADMIN_USERS_CONFIG_KEY);
     QVariant adminRolesVariant = _settingsManager.valueForKeyPath(ADMIN_ROLES_CONFIG_KEY);
     QString httpPeerAddress = connection->peerAddress().toString();
     QString httpOperation = operationToString(connection->requestOperation());
 
+    if (_settingsManager.valueForKeyPath(HTTP_API_TOKEN_ENABLE).toBool()) {
+        QString httpApiHeader = connection->requestHeader(HTTP_API_TOKEN);
+
+        if (!httpApiHeader.isEmpty()) {
+            if (httpApiHeader.length() >= MIN_API_TOKEN_LENGTH &&
+                httpApiHeader == _settingsManager.valueForKeyPath(HTTP_API_TOKEN)) {
+                qDebug(domain_server_auth) << "[API ACCESS] "
+                                           << "ok";
+                return { true, "API_TOKEN" };
+            } else {
+                qDebug(domain_server_auth) << "[API ACCESS] " << API_TOKEN_UNAUTHENTICATED;
+                connection->respond(HTTPConnection::StatusCode401, API_TOKEN_UNAUTHENTICATED);
+                return { false, QString() };
+            }
+        }
+    }
 
     if (_oauthEnable) {
         QString cookieString = connection->requestHeader(HTTP_COOKIE_HEADER_KEY);
