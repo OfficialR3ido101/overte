@@ -21,6 +21,7 @@ struct sockaddr;
 #include <QtNetwork/QHostInfo>
 
 #include "SocketType.h"
+#include <stdexcept>
 
 
 class SockAddr : public QObject {
@@ -83,17 +84,26 @@ namespace std {
         // NOTE: this hashing specifically ignores IPv6 addresses - if we begin to support those we will need
         // to conditionally hash the bytes that represent an IPv6 address
         size_t operator()(const SockAddr& sockAddr) const {
-            // use XOR of implemented std::hash templates for new hash
-            // depending on the type of address we're looking at
-            
+            // Check if the address is IPv4
             if (sockAddr.getAddress().protocol() == QAbstractSocket::IPv4Protocol) {
-                return hash<uint32_t>()((uint32_t) sockAddr.getAddress().toIPv4Address())
-                    ^ hash<uint16_t>()((uint16_t) sockAddr.getPort());
-            } else {
-                // NOTE: if we start to use IPv6 addresses, it's possible their hashing
-                // can be faster by XORing the hash for each 64 bits in the address
-                return hash<string>()(sockAddr.getAddress().toString().toStdString())
-                    ^ hash<uint16_t>()((uint16_t) sockAddr.getPort());
+                return std::hash<uint32_t>()(sockAddr.getAddress().toIPv4Address()) ^ std::hash<uint16_t>()(sockAddr.getPort());
+            }
+            // Handle IPv6 addresses
+            else if (sockAddr.getAddress().protocol() == QAbstractSocket::IPv6Protocol) {
+                // Get the 16-byte array representation of the IPv6 address
+                Q_IPV6ADDR ipv6Bytes = sockAddr.getAddress().toIPv6Address();
+
+                // Split into two 64-bit segments
+                uint64_t high, low;
+                memcpy(&high, ipv6Bytes.c, sizeof(uint64_t));                    // First 64 bits
+                memcpy(&low, ipv6Bytes.c + sizeof(uint64_t), sizeof(uint64_t));  // Second 64 bits
+
+                // Combine the hashes of the two segments and the port
+                return std::hash<uint64_t>()(high) ^ std::hash<uint64_t>()(low) ^ std::hash<uint16_t>()(sockAddr.getPort());
+            }
+            // Fallback for unsupported protocols, if needed
+            else {
+                throw std::invalid_argument("Unsupported address protocol");
             }
         }
     };
