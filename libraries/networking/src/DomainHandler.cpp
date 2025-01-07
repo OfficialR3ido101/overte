@@ -257,12 +257,8 @@ void DomainHandler::setURLAndID(QUrl domainURL, QUuid domainID) {
 void DomainHandler::setIceServerHostnameAndID(const QString& iceServerHostname, const QUuid& id) {
 
     // TODO(IPv6):
-    QHostAddress IPv4 = SockAddr().getAddressIPv4();
-    QHostAddress IPv6 = SockAddr().getAddressIPv6();
-
-    QHostAddress address = !IPv6.isNull() ? IPv6 : IPv4;
-
-    auto newIceServer = address.toString() != iceServerHostname;
+   
+    auto newIceServer = _iceServerSockAddr.getAddress().toString() != iceServerHostname;
     auto newDomainID = id != _pendingDomainID;
 
     // if it's in the error state, reset and try again.
