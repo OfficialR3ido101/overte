@@ -258,7 +258,8 @@ void DomainHandler::setIceServerHostnameAndID(const QString& iceServerHostname, 
 
     // TODO(IPv6):
    
-    auto newIceServer = _iceServerSockAddr.getAddress().toString() != iceServerHostname;
+    bool newIceServer = (_iceServerSockAddr.getAddressIPv4().toString() != iceServerHostname) &&
+                        (_iceServerSockAddr.getAddressIPv6().toString() != iceServerHostname);
     auto newDomainID = id != _pendingDomainID;
 
     // if it's in the error state, reset and try again.
