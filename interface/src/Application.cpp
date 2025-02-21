@@ -969,6 +969,7 @@ const bool DEFAULT_DESKTOP_TABLET_BECOMES_TOOLBAR = true;
 const bool DEFAULT_HMD_TABLET_BECOMES_TOOLBAR = false;
 const bool DEFAULT_PREFER_STYLUS_OVER_LASER = false;
 const bool DEFAULT_PREFER_AVATAR_FINGER_OVER_STYLUS = false;
+const bool DEFAULT_MOUSE_LOCK = false;
 const bool DEFAULT_SHOW_GRAPHICS_ICON = true;
 const QString DEFAULT_CURSOR_NAME = "SYSTEM";
 const bool DEFAULT_MINI_TABLET_ENABLED = false;
@@ -1011,6 +1012,7 @@ Application::Application(
     _hmdTabletBecomesToolbarSetting("hmdTabletBecomesToolbar", DEFAULT_HMD_TABLET_BECOMES_TOOLBAR),
     _preferStylusOverLaserSetting("preferStylusOverLaser", DEFAULT_PREFER_STYLUS_OVER_LASER),
     _preferAvatarFingerOverStylusSetting("preferAvatarFingerOverStylus", DEFAULT_PREFER_AVATAR_FINGER_OVER_STYLUS),
+    _defaultMouseLock("defaultMouseLock", DEFAULT_MOUSE_LOCK),
     _showGraphicsIconSetting("showGraphicsIcon", DEFAULT_SHOW_GRAPHICS_ICON),
     _constrainToolbarPosition("toolbar/constrainToolbarToCenterX", true),
     _awayStateWhenFocusLostInVREnabled("awayStateWhenFocusLostInVREnabled", DEFAULT_AWAY_STATE_WHEN_FOCUS_LOST_IN_VR_ENABLED),
@@ -3841,6 +3843,14 @@ void Application::setPreferStylusOverLaser(bool value) {
 
 void Application::setPreferAvatarFingerOverStylus(bool value) {
     _preferAvatarFingerOverStylusSetting.set(value);
+}
+
+void Application::setMouseLock(bool value) {
+    _defaultMouseLock.set(value);
+    getApplicationCompositor().setMouseLockComposit(value);
+}
+bool Application::getMouseLock() {
+    return _defaultMouseLock.get();
 }
 
 void Application::setShowGraphicsIcon(bool value) {

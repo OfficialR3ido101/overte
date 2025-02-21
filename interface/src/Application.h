@@ -262,6 +262,9 @@ public:
 
     bool getPreferAvatarFingerOverStylus() { return _preferAvatarFingerOverStylusSetting.get(); }
     void setPreferAvatarFingerOverStylus(bool value);
+    
+    void setMouseLock(bool value);
+    bool getMouseLock();
 
     bool getShowGraphicsIcon() { return _showGraphicsIconSetting.get(); }
     void setShowGraphicsIcon(bool value);
@@ -726,6 +729,7 @@ private:
     Setting::Handle<bool> _hmdTabletBecomesToolbarSetting;
     Setting::Handle<bool> _preferStylusOverLaserSetting;
     Setting::Handle<bool> _preferAvatarFingerOverStylusSetting;
+    Setting::Handle<bool> _defaultMouseLock;
     Setting::Handle<bool> _showGraphicsIconSetting;
     Setting::Handle<bool> _constrainToolbarPosition;
     Setting::Handle<bool> _awayStateWhenFocusLostInVREnabled;
