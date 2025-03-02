@@ -4,7 +4,6 @@
 //
 //  Created by Sam Gateau on 5/4/2015.
 //  Copyright 2015 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -74,14 +73,14 @@ void Skybox::prepare(gpu::Batch& batch) const {
     }
 }
 
-void Skybox::render(gpu::Batch& batch, const ViewFrustum& frustum, bool forward, uint transformSlot) const {
+void Skybox::render(gpu::Batch& batch, const ViewFrustum& frustum, bool forward) const {
     updateSchemaBuffer();
-    Skybox::render(batch, frustum, (*this), forward, transformSlot);
+    Skybox::render(batch, frustum, (*this), forward);
 }
 
 static std::map<bool, gpu::PipelinePointer> _pipelines;
 
-void Skybox::render(gpu::Batch& batch, const ViewFrustum& viewFrustum, const Skybox& skybox, bool forward, uint transformSlot) {
+void Skybox::render(gpu::Batch& batch, const ViewFrustum& viewFrustum, const Skybox& skybox, bool forward) {
     if (_pipelines.empty()) {
         static const std::vector<std::tuple<bool, uint32_t>> keys = {
             std::make_tuple(false, shader::graphics::program::skybox),
@@ -110,8 +109,6 @@ void Skybox::render(gpu::Batch& batch, const ViewFrustum& viewFrustum, const Sky
 
     batch.setProjectionTransform(projMat);
     batch.setViewTransform(viewTransform);
-    // This is needed if we want to have motion vectors on the sky
-    batch.saveViewProjectionTransform(transformSlot);
     batch.setModelTransform(Transform()); // only for Mac
 
     batch.setPipeline(_pipelines[forward]);

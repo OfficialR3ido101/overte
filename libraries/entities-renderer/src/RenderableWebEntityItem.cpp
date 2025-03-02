@@ -2,7 +2,6 @@
 //  Created by Bradley Austin Davis on 2015/05/12
 //  Copyright 2013 High Fidelity, Inc.
 //  Copyright 2020 Vircadia contributors.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -325,16 +324,13 @@ void WebEntityRenderer::doRender(RenderArgs* args) {
     bool usePrimaryFrustum = args->_renderMode == RenderArgs::RenderMode::SHADOW_RENDER_MODE || args->_mirrorDepth > 0;
     transform.setRotation(BillboardModeHelpers::getBillboardRotation(transform.getTranslation(), transform.getRotation(), _billboardMode,
         usePrimaryFrustum ? BillboardModeHelpers::getPrimaryViewFrustumPosition() : args->getViewFrustum().getPosition()));
-    batch.setModelTransform(transform, _prevRenderTransform);
-    if (args->_renderMode == Args::RenderMode::DEFAULT_RENDER_MODE || args->_renderMode == Args::RenderMode::MIRROR_RENDER_MODE) {
-        _prevRenderTransform = transform;
-    }
+    batch.setModelTransform(transform);
 
     // Turn off jitter for these entities
-    batch.pushProjectionJitterEnabled(false);
+    batch.pushProjectionJitter();
     DependencyManager::get<GeometryCache>()->bindWebBrowserProgram(batch, transparent, forward);
     DependencyManager::get<GeometryCache>()->renderQuad(batch, topLeft, bottomRight, texMin, texMax, color, _geometryId);
-    batch.popProjectionJitterEnabled();
+    batch.popProjectionJitter();
     batch.setResourceTexture(0, nullptr);
 }
 

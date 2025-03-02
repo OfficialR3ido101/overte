@@ -12,7 +12,6 @@
 #include "OctreeStatsProvider.h"
 
 #include "Application.h"
-#include "Menu.h"
 #include "octree/OctreePacketProcessor.h"
 
 OctreeStatsProvider::OctreeStatsProvider(QObject* parent, NodeToOctreeSceneStats* model) :

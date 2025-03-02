@@ -107,7 +107,6 @@ public:
 protected:
     QUuid _entityID;
     std::weak_ptr<TextRenderer3D> _textRenderer;
-    Transform _prevRenderTransform;
 
     int _geometryID { 0 };
 };

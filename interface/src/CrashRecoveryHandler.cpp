@@ -26,6 +26,8 @@
 #include "Application.h"
 #include "Menu.h"
 
+
+
 #include <RunningMarker.h>
 #include <SettingHandle.h>
 #include <SettingHelpers.h>
@@ -37,6 +39,7 @@
 
 bool CrashRecoveryHandler::checkForResetSettings(bool wasLikelyCrash, bool suppressPrompt) {
     Setting::Handle<bool> crashReportingAsked { "CrashReportingAsked", false };
+
 
     Settings settings;
     settings.beginGroup("Developer");
@@ -90,6 +93,8 @@ bool CrashRecoveryHandler::suggestCrashReporting() {
 
     QString explainText;
     auto &ch = CrashHandler::getInstance();
+
+
 
     switch(BuildInfo::BUILD_TYPE) {
         case BuildInfo::BuildType::Dev:

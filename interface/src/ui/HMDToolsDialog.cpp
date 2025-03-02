@@ -28,8 +28,6 @@
 #include "MainWindow.h"
 #include "Menu.h"
 #include "DialogsManager.h"
-#include "LodToolsDialog.h"
-#include "OctreeStatsDialog.h"
 
 static const int WIDTH = 350;
 static const int HEIGHT = 100;

@@ -33,7 +33,6 @@
 #include <AnimInverseKinematics.h>
 #include <AudioClient.h>
 #include <ClientTraitsHandler.h>
-#include <controllers/UserInputMapper.h>
 #include <recording/Clip.h>
 #include <recording/Deck.h>
 #include <display-plugins/DisplayPlugin.h>

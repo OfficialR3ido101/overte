@@ -3,8 +3,7 @@
 //  render/src/render
 //
 //  Created by Sam Gateau on 5/21/15.
-//  Copyright 2015 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
+//  Copyright 20154 High Fidelity, Inc.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -197,7 +196,12 @@ void DrawBounds::run(const RenderContextPointer& renderContext,
         args->_batch = &batch;
 
         // Setup projection
-        batch.setSavedViewProjectionTransform(_transformSlot);
+        glm::mat4 projMat;
+        Transform viewMat;
+        args->getViewFrustum().evalProjectionMatrix(projMat);
+        args->getViewFrustum().evalViewTransform(viewMat);
+        batch.setProjectionTransform(projMat);
+        batch.setViewTransform(viewMat);
         batch.setModelTransform(Transform());
 
         // Bind program

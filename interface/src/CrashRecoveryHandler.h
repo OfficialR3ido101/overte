@@ -14,6 +14,11 @@
 
 #include <QString>
 
+
+
+
+
+
 class CrashRecoveryHandler {
 
 public:

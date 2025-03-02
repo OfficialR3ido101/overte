@@ -24,10 +24,6 @@
 using MutedGetter = std::function<bool()>;
 using MutedSetter = std::function<void(bool)>;
 
-#define OVERTE_AUDIO_STRING "Audio"
-#define OVERTE_AUDIO_HMD_STRING "VR"
-#define OVERTE_AUDIO_DESKTOP_STRING "Desktop"
-
 namespace scripting {
 
 class Audio : public AudioScriptingInterface, protected ReadWriteLockable {

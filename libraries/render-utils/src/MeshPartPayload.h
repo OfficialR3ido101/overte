@@ -71,9 +71,6 @@ public:
 
     void setBlendshapeBuffer(const std::unordered_map<int, gpu::BufferPointer>& blendshapeBuffers, const QVector<int>& blendedMeshSizes);
 
-protected:
-    mutable Transform _previousRenderTransform;
-
 private:
     void initCache(const ModelPointer& model, int shapeID);
 

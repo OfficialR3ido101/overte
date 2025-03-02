@@ -13,7 +13,6 @@
 #include <shared/GlobalAppProperties.h>
 #include <shared/QtHelpers.h>
 #include <crash-handler/CrashHandler.h>
-#include "ThreadHelpers.h"
 
 
 RenderEventHandler::RenderEventHandler(CheckCall checkCall, RenderCall renderCall) :

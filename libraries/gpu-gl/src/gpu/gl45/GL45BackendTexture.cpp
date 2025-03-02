@@ -4,7 +4,6 @@
 //
 //  Created by Sam Gateau on 1/19/2015.
 //  Copyright 2014 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -168,7 +167,7 @@ public:
             glSamplerParameteri(result, GL_TEXTURE_WRAP_T, GLTexture::WRAP_MODES[sampler.getWrapModeV()]);
             glSamplerParameteri(result, GL_TEXTURE_WRAP_R, GLTexture::WRAP_MODES[sampler.getWrapModeW()]);
 
-            glSamplerParameterf(result, GL_TEXTURE_MAX_ANISOTROPY, sampler.getMaxAnisotropy());
+            glSamplerParameterf(result, GL_TEXTURE_MAX_ANISOTROPY_EXT, sampler.getMaxAnisotropy());
             glSamplerParameterfv(result, GL_TEXTURE_BORDER_COLOR, (const float*)&sampler.getBorderColor());
 
             glSamplerParameterf(result, GL_TEXTURE_MIN_LOD, sampler.getMinMip());
@@ -315,7 +314,7 @@ void GL45Texture::syncSampler() const {
     glTextureParameteri(_id, GL_TEXTURE_WRAP_T, WRAP_MODES[sampler.getWrapModeV()]);
     glTextureParameteri(_id, GL_TEXTURE_WRAP_R, WRAP_MODES[sampler.getWrapModeW()]);
 
-    glTextureParameterf(_id, GL_TEXTURE_MAX_ANISOTROPY, sampler.getMaxAnisotropy());
+    glTextureParameterf(_id, GL_TEXTURE_MAX_ANISOTROPY_EXT, sampler.getMaxAnisotropy());
     glTextureParameterfv(_id, GL_TEXTURE_BORDER_COLOR, (const float*)&sampler.getBorderColor());
 
     glTextureParameterf(_id, GL_TEXTURE_MIN_LOD, sampler.getMinMip());

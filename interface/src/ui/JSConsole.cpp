@@ -17,7 +17,6 @@
 #include <QLabel>
 #include <QScrollBar>
 #include <QtConcurrent/QtConcurrentRun>
-#include <QStandardPaths>
 #include <QStringListModel>
 #include <QListView>
 #include <QToolTip>

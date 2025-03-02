@@ -5,7 +5,6 @@
 //
 //  Created by Zach Pomerantz on 2/16/2016.
 //  Copyright 2016 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -16,7 +15,6 @@
 
 <@if not HIFI_USE_FORWARD@>
     <@include DeferredBufferWrite.slh@>
-    layout(location=RENDER_UTILS_ATTR_PREV_POSITION_CS) in vec4 _prevPositionCS;
 <@else@>
     layout(location=0) out vec4 _fragColor0;
 <@endif@>
@@ -45,9 +43,9 @@ void main(void) {
 <@if not HIFI_USE_FORWARD@>
     vec3 NORMAL = vec3(1.0, 0.0, 0.0);
     <@if not HIFI_USE_TRANSLUCENT@>
-        packDeferredFragmentUnlit(_prevPositionCS, NORMAL, 1.0, varColor.rgb);
+        packDeferredFragmentUnlit(NORMAL, 1.0, varColor.rgb);
     <@else@>
-        packDeferredFragmentTranslucent(_prevPositionCS, NORMAL, varColor.a, varColor.rgb, DEFAULT_ROUGHNESS);
+        packDeferredFragmentTranslucent(NORMAL, varColor.a, varColor.rgb, DEFAULT_ROUGHNESS);
     <@endif@>
 <@else@>
     _fragColor0 = varColor;

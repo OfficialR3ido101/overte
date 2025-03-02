@@ -3,8 +3,7 @@
 //  render-utils/src/
 //
 //  Created by Sam Gateau on 5/29/15.
-//  Copyright 2016 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
+//  Copyright 20154 High Fidelity, Inc.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -44,19 +43,18 @@ protected:
 
 class RenderTransparentDeferred {
 public:
-    using Inputs = render::VaryingSet7<render::ItemBounds, HazeStage::FramePointer, LightStage::FramePointer, LightingModelPointer, LightClustersPointer, LightStage::ShadowFramePointer, DeferredFrameTransformPointer>;
+    using Inputs = render::VaryingSet7<render::ItemBounds, HazeStage::FramePointer, LightStage::FramePointer, LightingModelPointer, LightClustersPointer, LightStage::ShadowFramePointer, glm::vec2>;
     using Config = RenderTransparentDeferredConfig;
     using JobModel = render::Job::ModelI<RenderTransparentDeferred, Inputs, Config>;
 
-    RenderTransparentDeferred(render::ShapePlumberPointer shapePlumber, uint transformSlot)
-        : _shapePlumber(shapePlumber), _transformSlot(transformSlot) {}
+    RenderTransparentDeferred(render::ShapePlumberPointer shapePlumber)
+        : _shapePlumber{ shapePlumber } {}
 
     void configure(const Config& config) { _maxDrawn = config.maxDrawn; }
     void run(const render::RenderContextPointer& renderContext, const Inputs& inputs);
 
 protected:
     render::ShapePlumberPointer _shapePlumber;
-    uint _transformSlot;
     int _maxDrawn;  // initialized by Config
 };
 
@@ -85,13 +83,13 @@ protected:
 
 class DrawStateSortDeferred {
 public:
-    using Inputs = render::VaryingSet3<render::ItemBounds, LightingModelPointer, DeferredFrameTransformPointer>;
+    using Inputs = render::VaryingSet3<render::ItemBounds, LightingModelPointer, glm::vec2>;
 
     using Config = DrawStateSortConfig;
     using JobModel = render::Job::ModelI<DrawStateSortDeferred, Inputs, Config>;
 
-    DrawStateSortDeferred(render::ShapePlumberPointer shapePlumber, uint transformSlot)
-        : _shapePlumber(shapePlumber), _transformSlot(transformSlot) {
+    DrawStateSortDeferred(render::ShapePlumberPointer shapePlumber)
+        : _shapePlumber{ shapePlumber } {
     }
 
     void configure(const Config& config) {
@@ -102,7 +100,6 @@ public:
 
 protected:
     render::ShapePlumberPointer _shapePlumber;
-    uint _transformSlot;
     int _maxDrawn;  // initialized by Config
     bool _stateSort;
 };
@@ -144,8 +141,12 @@ public:
     using Config = RenderDeferredTaskConfig;
     using JobModel = render::Task::ModelI<RenderDeferredTask, Input, Config>;
 
+    RenderDeferredTask();
+
     void configure(const Config& config);
-    void build(JobModel& task, const render::Varying& input, render::Varying& output, render::CullFunctor cullFunctor, uint transformOffset, size_t depth);
+    void build(JobModel& task, const render::Varying& input, render::Varying& output, render::CullFunctor cullFunctor, size_t depth);
+
+private:
 };
 
 

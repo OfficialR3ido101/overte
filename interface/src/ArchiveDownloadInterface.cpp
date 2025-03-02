@@ -38,7 +38,7 @@ ArchiveDownloadInterface::ArchiveDownloadInterface(QObject* parent) : QObject(pa
     // nothing for now
 }
 
-void ArchiveDownloadInterface::runUnzip(QString path, QUrl url, bool autoAdd, bool isZip) {
+void ArchiveDownloadInterface::runUnzip(QString path, QUrl url, bool autoAdd, bool isZip, bool isBlocks) {
     QString fileName = "/" + path.section("/", -1);
     QString tempDir = path;
     if (!isZip) {
@@ -68,7 +68,7 @@ void ArchiveDownloadInterface::runUnzip(QString path, QUrl url, bool autoAdd, bo
         isZip = false;
     }
 
-    emit unzipResult(path, fileList, autoAdd, isZip);
+    emit unzipResult(path, fileList, autoAdd, isZip, isBlocks);
 
 }
 

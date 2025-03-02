@@ -1,2 +1,3 @@
-VERTEX DrawUnitQuad
+VERTEX DrawTransformVertexPosition
 FRAGMENT DrawColor
+r

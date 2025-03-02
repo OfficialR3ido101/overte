@@ -360,7 +360,7 @@ void OpenGLDisplayPlugin::customizeContext() {
     auto presentThread = DependencyManager::get<PresentThread>();
     Q_ASSERT(thread() == presentThread->thread());
 
-    getGLBackend()->updatePresentFrame();
+    getGLBackend()->setCameraCorrection(mat4(), mat4(), true, true);
 
     for (auto& cursorValue : _cursorsData) {
         auto& cursorData = cursorValue.second;
@@ -704,7 +704,8 @@ void OpenGLDisplayPlugin::present(const std::shared_ptr<RefreshRateController>& 
 
     if (_currentFrame) {
         auto correction = getViewCorrection();
-        getGLBackend()->updatePresentFrame(correction);
+        getGLBackend()->setCameraCorrection(correction, _prevRenderView, true);
+        _prevRenderView = correction * _currentFrame->view;
         {
             withPresentThreadLock([&] {
                 _renderRate.increment();

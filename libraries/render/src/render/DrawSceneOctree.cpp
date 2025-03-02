@@ -4,7 +4,6 @@
 //
 //  Created by Sam Gateau on 1/25/16.
 //  Copyright 2015 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -30,7 +29,7 @@ gpu::PipelinePointer DrawSceneOctree::_drawLODReticlePipeline;
 gpu::PipelinePointer DrawSceneOctree::_drawItemBoundPipeline;
 gpu::Stream::FormatPointer DrawSceneOctree::_cellBoundsFormat = std::make_shared<gpu::Stream::Format>();
 
-DrawSceneOctree::DrawSceneOctree(uint transformSlot) : _transformSlot(transformSlot) {
+DrawSceneOctree::DrawSceneOctree() {
     std::once_flag once;
     std::call_once(once, [] {
         _cellBoundsFormat->setAttribute(0, 0, gpu::Element(gpu::VEC4, gpu::INT32, gpu::XYZW), 0, gpu::Stream::PER_INSTANCE);
@@ -70,7 +69,6 @@ const gpu::PipelinePointer DrawSceneOctree::getDrawLODReticlePipeline() {
 void DrawSceneOctree::configure(const Config& config) {
     _showVisibleCells = config.showVisibleCells;
     _showEmptyCells = config.showEmptyCells;
-    _showLODReticle = config.showLODReticle;
 }
 
 void DrawSceneOctree::run(const RenderContextPointer& renderContext, const ItemSpatialTree::ItemSelection& inSelection) {
@@ -83,50 +81,53 @@ void DrawSceneOctree::run(const RenderContextPointer& renderContext, const ItemS
     std::static_pointer_cast<Config>(renderContext->jobConfig)->numFreeCells = (int)scene->getSpatialTree().getNumFreeCells();
 
     gpu::doInBatch("DrawSceneOctree::run", args->_context, [&](gpu::Batch& batch) {
+        glm::mat4 projMat;
+        Transform viewMat;
+        args->getViewFrustum().evalProjectionMatrix(projMat);
+        args->getViewFrustum().evalViewTransform(viewMat);
         batch.setViewportTransform(args->_viewport);
-        batch.setSavedViewProjectionTransform(_transformSlot);
 
-        if (_showEmptyCells || _showVisibleCells) {
-            batch.setModelTransform(Transform());
+        batch.setProjectionTransform(projMat);
+        batch.setViewTransform(viewMat, true);
+        batch.setModelTransform(Transform());
 
-            // bind the one gpu::Pipeline we need
-            batch.setPipeline(getDrawCellBoundsPipeline());
-            batch.setInputFormat(_cellBoundsFormat);
+        // bind the one gpu::Pipeline we need
+        batch.setPipeline(getDrawCellBoundsPipeline());
+        batch.setInputFormat(_cellBoundsFormat);
 
-            std::vector<ivec4> cellBounds;
-            auto drawCellBounds = [this, &cellBounds, &scene](const std::vector<gpu::Stamp>& cells) {
-                cellBounds.reserve(cellBounds.size() + cells.size());
-                for (const auto& cellID : cells) {
-                    auto cell = scene->getSpatialTree().getConcreteCell(cellID);
-                    auto cellLoc = cell.getlocation();
-                    glm::ivec4 cellLocation(cellLoc.pos.x, cellLoc.pos.y, cellLoc.pos.z, cellLoc.depth);
+        std::vector<ivec4> cellBounds;
+        auto drawCellBounds = [this, &cellBounds, &scene](const std::vector<gpu::Stamp>& cells) {
+            cellBounds.reserve(cellBounds.size() + cells.size());
+            for (const auto& cellID : cells) {
+                auto cell = scene->getSpatialTree().getConcreteCell(cellID);
+                auto cellLoc = cell.getlocation();
+                glm::ivec4 cellLocation(cellLoc.pos.x, cellLoc.pos.y, cellLoc.pos.z, cellLoc.depth);
 
-                    bool empty = cell.isBrickEmpty() || !cell.hasBrick();
-                    if (empty) {
-                        if (!_showEmptyCells) {
-                            continue;
-                        }
-                        cellLocation.w *= -1.0;
-                    } else if (!_showVisibleCells) {
+                bool empty = cell.isBrickEmpty() || !cell.hasBrick();
+                if (empty) {
+                    if (!_showEmptyCells) {
                         continue;
                     }
-                    cellBounds.push_back(cellLocation);
+                    cellLocation.w *= -1.0;
+                } else if (!empty && !_showVisibleCells) {
+                    continue;
                 }
-            };
-
-            drawCellBounds(inSelection.cellSelection.insideCells);
-            drawCellBounds(inSelection.cellSelection.partialCells);
-            auto size = cellBounds.size() * sizeof(ivec4);
-            if (size > _cellBoundsBuffer->getSize()) {
-                _cellBoundsBuffer->resize(size);
+                cellBounds.push_back(cellLocation);
             }
-            _cellBoundsBuffer->setSubData(0, cellBounds);
-            batch.setInputBuffer(0, _cellBoundsBuffer, 0, sizeof(ivec4));
-            batch.drawInstanced((uint32_t)cellBounds.size(), gpu::LINES, 24);
+        };
+
+        drawCellBounds(inSelection.cellSelection.insideCells);
+        drawCellBounds(inSelection.cellSelection.partialCells);
+        auto size = cellBounds.size() * sizeof(ivec4);
+        if (size > _cellBoundsBuffer->getSize()) {
+            _cellBoundsBuffer->resize(size);
         }
+        _cellBoundsBuffer->setSubData(0, cellBounds);
+        batch.setInputBuffer(0, _cellBoundsBuffer, 0, sizeof(ivec4));
+        batch.drawInstanced((uint32_t)cellBounds.size(), gpu::LINES, 24);
 
         // Draw the LOD Reticle
-        if (_showLODReticle) {
+        {
             float angle = glm::degrees(getPerspectiveAccuracyHalfAngle(args->_sizeScale, args->_boundaryLevelAdjust));
             Transform crosshairModel;
             crosshairModel.setTranslation(glm::vec3(0.0, 0.0, -1000.0));
@@ -186,8 +187,14 @@ void DrawItemSelection::run(const RenderContextPointer& renderContext, const Ite
     }
 
     gpu::doInBatch("DrawItemSelection::run", args->_context, [&](gpu::Batch& batch) {
+        glm::mat4 projMat;
+        Transform viewMat;
+        args->getViewFrustum().evalProjectionMatrix(projMat);
+        args->getViewFrustum().evalViewTransform(viewMat);
         batch.setViewportTransform(args->_viewport);
-        batch.setSavedViewProjectionTransform(_transformSlot);
+
+        batch.setProjectionTransform(projMat);
+        batch.setViewTransform(viewMat, true);
         batch.setModelTransform(Transform());
 
         // bind the one gpu::Pipeline we need

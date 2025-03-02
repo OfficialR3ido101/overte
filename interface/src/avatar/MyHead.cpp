@@ -15,7 +15,6 @@
 #include <recording/Deck.h>
 #include <Rig.h>
 #include <BlendshapeConstants.h>
-#include <controllers/UserInputMapper.h>
 
 #include "Application.h"
 #include "MyAvatar.h"

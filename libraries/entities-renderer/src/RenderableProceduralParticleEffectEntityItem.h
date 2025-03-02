@@ -46,7 +46,7 @@ private:
     QString _particleUpdateData;
     Procedural _updateProcedural;
     QString _particleRenderData;
-    Procedural _renderProcedural { false }; // No AA on Particles
+    Procedural _renderProcedural;
 
     size_t _numParticles { 0 };
     size_t _particlePropTextureDim { 128 }; // 2^ceil(log2(sqrt(10,000)))

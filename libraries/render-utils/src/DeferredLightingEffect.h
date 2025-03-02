@@ -124,8 +124,8 @@ public:
 class RenderDeferredCleanup {
 public:
     using JobModel = render::Job::Model<RenderDeferredCleanup>;
-
-    void run(const render::RenderContextPointer& renderContext, const DeferredFramebufferPointer& deferredFramebuffer);
+    
+    void run(const render::RenderContextPointer& renderContext);
 };
 
 using RenderDeferredConfig = render::GPUJobConfig;

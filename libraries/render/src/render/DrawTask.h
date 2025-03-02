@@ -3,8 +3,7 @@
 //  render/src/render
 //
 //  Created by Sam Gateau on 5/21/15.
-//  Copyright 2015 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
+//  Copyright 20154 High Fidelity, Inc.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -59,8 +58,6 @@ public:
     using Inputs = render::ItemBounds;
     using JobModel = render::Job::ModelI<DrawBounds, Inputs, Config>;
 
-    DrawBounds(uint transformSlot) : _transformSlot(transformSlot) {}
-
     void configure(const Config& configuration) {}
     void run(const render::RenderContextPointer& renderContext,
         const Inputs& items);
@@ -70,7 +67,6 @@ private:
     static gpu::PipelinePointer _boundsPipeline;
     gpu::BufferPointer _drawBuffer;
     gpu::BufferPointer _paramsBuffer;
-    uint _transformSlot;
 };
 
 class DrawQuadVolumeConfig : public render::JobConfig {

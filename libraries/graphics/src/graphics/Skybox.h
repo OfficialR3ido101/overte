@@ -4,7 +4,6 @@
 //
 //  Created by Sam Gateau on 5/4/2015.
 //  Copyright 2015 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -45,9 +44,9 @@ public:
     virtual void clear();
 
     void prepare(gpu::Batch& batch) const;
-    virtual void render(gpu::Batch& batch, const ViewFrustum& frustum, bool forward, uint transformSlot) const;
+    virtual void render(gpu::Batch& batch, const ViewFrustum& frustum, bool forward) const;
 
-    static void render(gpu::Batch& batch, const ViewFrustum& frustum, const Skybox& skybox, bool forward, uint transformSlot);
+    static void render(gpu::Batch& batch, const ViewFrustum& frustum, const Skybox& skybox, bool forward);
 
     const UniformBufferView& getSchemaBuffer() const { return _schemaBuffer; }
 

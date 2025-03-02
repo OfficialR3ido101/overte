@@ -37,7 +37,6 @@
  *     they're disabled.
  * @property {integer} antialiasingMode - The active anti-aliasing mode.
  * @property {number} viewportResolutionScale - The view port resolution scale, <code>&gt; 0.0</code>.
- * @property {boolean} cameraClippingEnabled - <code>true</code> if third person camera clipping is enabled, <code>false</code> if it's disabled.
  */
 class RenderScriptingInterface : public QObject {
     Q_OBJECT
@@ -46,11 +45,10 @@ class RenderScriptingInterface : public QObject {
     Q_PROPERTY(bool hazeEnabled READ getHazeEnabled WRITE setHazeEnabled NOTIFY settingsChanged)
     Q_PROPERTY(bool bloomEnabled READ getBloomEnabled WRITE setBloomEnabled NOTIFY settingsChanged)
     Q_PROPERTY(bool ambientOcclusionEnabled READ getAmbientOcclusionEnabled WRITE setAmbientOcclusionEnabled NOTIFY settingsChanged)
-    Q_PROPERTY(AntialiasingSetupConfig::Mode antialiasingMode READ getAntialiasingMode WRITE setAntialiasingMode NOTIFY settingsChanged)
     Q_PROPERTY(bool proceduralMaterialsEnabled READ getProceduralMaterialsEnabled WRITE setProceduralMaterialsEnabled NOTIFY settingsChanged)
+    Q_PROPERTY(AntialiasingConfig::Mode antialiasingMode READ getAntialiasingMode WRITE setAntialiasingMode NOTIFY settingsChanged)
     Q_PROPERTY(float viewportResolutionScale READ getViewportResolutionScale WRITE setViewportResolutionScale NOTIFY settingsChanged)
     Q_PROPERTY(float verticalFieldOfView READ getVerticalFieldOfView WRITE setVerticalFieldOfView NOTIFY settingsChanged)
-    Q_PROPERTY(bool cameraClippingEnabled READ getCameraClippingEnabled WRITE setCameraClippingEnabled NOTIFY settingsChanged)
 
 public:
     RenderScriptingInterface();
@@ -204,14 +202,14 @@ public slots:
      * @function Render.getAntialiasingMode
      * @returns {AntialiasingMode} The active anti-aliasing mode.
      */
-    AntialiasingSetupConfig::Mode getAntialiasingMode() const;
+    AntialiasingConfig::Mode getAntialiasingMode() const;
 
     /*@jsdoc
      * Sets the active anti-aliasing mode.
      * @function Render.setAntialiasingMode
      * @param {AntialiasingMode} The active anti-aliasing mode.
      */
-    void setAntialiasingMode(AntialiasingSetupConfig::Mode mode);
+    void setAntialiasingMode(AntialiasingConfig::Mode mode);
 
     /*@jsdoc
      * Gets the view port resolution scale.
@@ -263,21 +261,7 @@ public slots:
      * @function Render.setVerticalFieldOfView
      * @param {number} fieldOfView - The vertical field of view in degrees to set.
      */
-    void setVerticalFieldOfView(float fieldOfView);
-
-    /*@jsdoc
-     * Gets whether or not third person camera clipping is enabled.
-     * @function Render.getCameraClippingEnabled
-     * @returns {boolean} <code>true</code> if camera clipping is enabled, <code>false</code> if it's disabled.
-     */
-    bool getCameraClippingEnabled() { return qApp->getCameraClippingEnabled(); }
-
-    /*@jsdoc
-     * Sets whether or not third person camera clipping is enabled.
-     * @function Render.setCameraClippingEnabled
-     * @param {boolean} enabled - <code>true</code> to enable third person camera clipping, <code>false</code> to disable.
-     */
-    void setCameraClippingEnabled(bool enabled);
+    void setVerticalFieldOfView( float fieldOfView );
 
 signals:
 
@@ -304,7 +288,7 @@ private:
     bool _bloomEnabled { true };
     bool _ambientOcclusionEnabled { true };
     bool _proceduralMaterialsEnabled { true };
-    AntialiasingSetupConfig::Mode _antialiasingMode { AntialiasingSetupConfig::Mode::NONE };
+    AntialiasingConfig::Mode _antialiasingMode { AntialiasingConfig::Mode::NONE };
     float _viewportResolutionScale { 1.0f };
     QString _fullScreenScreen;
 
@@ -315,7 +299,7 @@ private:
     Setting::Handle<bool> _bloomEnabledSetting { "bloomEnabled", true };
     Setting::Handle<bool> _ambientOcclusionEnabledSetting { "ambientOcclusionEnabled", true };
     Setting::Handle<bool> _proceduralMaterialsEnabledSetting { "proceduralMaterialsEnabled", true };
-    Setting::Handle<int> _antialiasingModeSetting { "antialiasingMode", (int)AntialiasingSetupConfig::Mode::NONE };
+    Setting::Handle<int> _antialiasingModeSetting { "antialiasingMode", AntialiasingConfig::Mode::NONE };
     Setting::Handle<float> _viewportResolutionScaleSetting { "viewportResolutionScale", 1.0f };
     Setting::Handle<QString> _fullScreenScreenSetting { "fullScreenScreen", "" };
 
@@ -326,7 +310,7 @@ private:
     void forceBloomEnabled(bool enabled);
     void forceAmbientOcclusionEnabled(bool enabled);
     void forceProceduralMaterialsEnabled(bool enabled);
-    void forceAntialiasingMode(AntialiasingSetupConfig::Mode mode);
+    void forceAntialiasingMode(AntialiasingConfig::Mode mode);
     void forceViewportResolutionScale(float scale);
 
     static std::once_flag registry_flag;

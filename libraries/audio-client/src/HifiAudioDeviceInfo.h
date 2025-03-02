@@ -19,8 +19,6 @@
 #include <QAudio>
 #include <QString>
 
-#define HIFI_AUDIO_DEVICE_INFO_DEFAULT_DEVICE_NAME "default "
-
 class HifiAudioDeviceInfo : public QObject {
     Q_OBJECT
     

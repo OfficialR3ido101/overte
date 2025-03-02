@@ -3,7 +3,6 @@
 //
 //  Created by Sam Gateau on 8/14/2017
 //  Copyright 2016 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or https://www.apache.org/licenses/LICENSE-2.0.html
@@ -39,7 +38,7 @@ Column{
 
     Prop.PropEnum {
         label: "Deferred AA Method"
-        object: Render.getConfig("RenderMainView.AntialiasingSetup")
+        object: Render.getConfig("RenderMainView.Antialiasing")
         property: "mode"
         enums: [
             "Off",
@@ -50,20 +49,20 @@ Column{
     Prop.PropEnum {
         id: jitter
         label: "Jitter"
-        object: Render.getConfig("RenderMainView.AntialiasingSetup")
+        object: Render.getConfig("RenderMainView.JitterCam")
         property: "state"
         enums: [
             "Off",
-            "Paused",
             "On",
+            "Paused",
                 ]
     }
     Separator {}          
 
     Prop.PropScalar {
-        visible: (Render.getConfig("RenderMainView.AntialiasingSetup").state == 1)
+        visible: (Render.getConfig("RenderMainView.JitterCam").state == 2)
         label: "Sample Index"
-        object: Render.getConfig("RenderMainView.AntialiasingSetup")
+        object: Render.getConfig("RenderMainView.JitterCam")
         property: "index"
       //  min: -1
       //  max: 32
@@ -71,26 +70,17 @@ Column{
         integral: true
     }
     Row {
-        visible: (Render.getConfig("RenderMainView.AntialiasingSetup").state == 1)
+        visible: (Render.getConfig("RenderMainView.JitterCam").state == 2)
         spacing: 10
 
         HifiControls.Button {
             text: "<"
-            onClicked: { Render.getConfig("RenderMainView.AntialiasingSetup").prev(); }
+            onClicked: { Render.getConfig("RenderMainView.JitterCam").prev(); }
         } 
         HifiControls.Button {
             text: ">"
-            onClicked: { Render.getConfig("RenderMainView.AntialiasingSetup").next(); }
+            onClicked: { Render.getConfig("RenderMainView.JitterCam").next(); }
         }
-    }
-    ConfigSlider {
-        label: qsTr("Jitter scale")
-        integral: false
-        config: Render.getConfig("RenderMainView.AntialiasingSetup")
-        property: "scale"
-        max: 2.0
-        min: 0.25
-        height: 38
     }
     Separator {}
     Prop.PropBool {
@@ -110,12 +100,7 @@ Column{
         label: "Feedback history color"
         object: Render.getConfig("RenderMainView.Antialiasing")
         property: "feedbackColor"
-    }
-    Prop.PropBool {
-        label: "History bicubic fetch"
-        object: Render.getConfig("RenderMainView.Antialiasing")
-        property: "bicubicHistoryFetch"
-    }
+    }           
     Prop.PropScalar {
         label: "Source blend"
         object: Render.getConfig("RenderMainView.Antialiasing")

@@ -4,7 +4,6 @@
 //
 //  Created by Sam Gateau 6/3/2016.
 //  Copyright 2016 High Fidelity, Inc.
-//  Copyright 2024 Overte e.V.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -19,51 +18,73 @@ DeferredFrameTransform::DeferredFrameTransform() {
     _frameTransformBuffer = gpu::BufferView(std::make_shared<gpu::Buffer>(sizeof(FrameTransform), (const gpu::Byte*) &frameTransform));
 }
 
-void DeferredFrameTransform::update(RenderArgs* args) {
+void DeferredFrameTransform::update(RenderArgs* args, glm::vec2 jitter) {
 
     // Update the depth info with near and far (same for stereo)
     auto nearZ = args->getViewFrustum().getNearClip();
     auto farZ = args->getViewFrustum().getFarClip();
 
     auto& frameTransformBuffer = _frameTransformBuffer.edit<FrameTransform>();
-    frameTransformBuffer.infos.depthInfo = glm::vec4(nearZ * farZ, farZ - nearZ, -farZ, 0.0f);
-    frameTransformBuffer.infos.pixelInfo = args->_viewport;
+    frameTransformBuffer.depthInfo = glm::vec4(nearZ*farZ, farZ - nearZ, -farZ, 0.0f);
 
-    args->getViewFrustum().evalProjectionMatrix(frameTransformBuffer.infos.projectionMono);
+    frameTransformBuffer.pixelInfo = args->_viewport;
+
+    //_parametersBuffer.edit<Parameters>()._ditheringInfo.y += 0.25f;
+
+    Transform cameraTransform;
+    args->getViewFrustum().evalViewTransform(cameraTransform);
+    cameraTransform.getMatrix(frameTransformBuffer.invView);
+    cameraTransform.getInverseMatrix(frameTransformBuffer.view);
+
+    args->getViewFrustum().evalProjectionMatrix(frameTransformBuffer.projectionMono);
+
+    // There may be some sort of mismatch here if the viewport size isn't the same as the frame buffer size as
+    // jitter is normalized by frame buffer size in TransformCamera. But we should be safe.
+    jitter.x /= args->_viewport.z;
+    jitter.y /= args->_viewport.w;
 
     // Running in stereo ?
     bool isStereo = args->isStereo();
     if (!isStereo) {
-        frameTransformBuffer.infos.stereoInfo = glm::vec4(0.0f, (float)args->_viewport.z, 0.0f, 0.0f);
-        frameTransformBuffer.infos.invPixelInfo = glm::vec4(1.0f / args->_viewport.z, 1.0f / args->_viewport.w, 0.0f, 0.0f);
+        frameTransformBuffer.projectionUnjittered[0] = frameTransformBuffer.projectionMono;
+        frameTransformBuffer.invProjectionUnjittered[0] = glm::inverse(frameTransformBuffer.projectionUnjittered[0]);
+
+        frameTransformBuffer.stereoInfo = glm::vec4(0.0f, (float)args->_viewport.z, 0.0f, 0.0f);
+        frameTransformBuffer.invpixelInfo = glm::vec4(1.0f / args->_viewport.z, 1.0f / args->_viewport.w, 0.0f, 0.0f);
+
+		frameTransformBuffer.projection[0] = frameTransformBuffer.projectionUnjittered[0];
+		frameTransformBuffer.projection[0][2][0] += jitter.x;
+		frameTransformBuffer.projection[0][2][1] += jitter.y;
+        frameTransformBuffer.invProjection[0] = glm::inverse(frameTransformBuffer.projection[0]);
     } else {
-        frameTransformBuffer.infos.pixelInfo.z *= 0.5f;
-        frameTransformBuffer.infos.stereoInfo = glm::vec4(1.0f, (float)(args->_viewport.z >> 1), 0.0f, 1.0f);
-        frameTransformBuffer.infos.invPixelInfo = glm::vec4(2.0f / (float)(args->_viewport.z), 1.0f / args->_viewport.w, 0.0f, 0.0f);
+
+        mat4 projMats[2];
+        mat4 eyeViews[2];
+        args->_context->getStereoProjections(projMats);
+        args->_context->getStereoViews(eyeViews);
+
+        jitter.x *= 2.0f;
+
+        for (int i = 0; i < 2; i++) {
+            // Compose the mono Eye space to Stereo clip space Projection Matrix
+            auto sideViewMat = projMats[i] * eyeViews[i];
+            frameTransformBuffer.projectionUnjittered[i] = sideViewMat;
+            frameTransformBuffer.invProjectionUnjittered[i] = glm::inverse(sideViewMat);
+
+			frameTransformBuffer.projection[i] = frameTransformBuffer.projectionUnjittered[i];
+			frameTransformBuffer.projection[i][2][0] += jitter.x;
+			frameTransformBuffer.projection[i][2][1] += jitter.y;
+			frameTransformBuffer.invProjection[i] = glm::inverse(frameTransformBuffer.projection[i]);
+		}
+
+        frameTransformBuffer.stereoInfo = glm::vec4(1.0f, (float)(args->_viewport.z >> 1), 0.0f, 1.0f);
+        frameTransformBuffer.invpixelInfo = glm::vec4(1.0f / (float)(args->_viewport.z >> 1), 1.0f / args->_viewport.w, 0.0f, 0.0f);
     }
 }
 
-void GenerateDeferredFrameTransform::run(const render::RenderContextPointer& renderContext, Output& frameTransform) {
+void GenerateDeferredFrameTransform::run(const render::RenderContextPointer& renderContext, const Input& jitter, Output& frameTransform) {
     if (!frameTransform) {
         frameTransform = std::make_shared<DeferredFrameTransform>();
     }
-
-    RenderArgs* args = renderContext->args;
-    frameTransform->update(args);
-
-    gpu::doInBatch("GenerateDeferredFrameTransform::run", args->_context, [&](gpu::Batch& batch) {
-        args->_batch = &batch;
-
-        glm::mat4 projMat;
-        Transform viewMat;
-        args->getViewFrustum().evalProjectionMatrix(projMat);
-        args->getViewFrustum().evalViewTransform(viewMat);
-        batch.setProjectionTransform(projMat);
-        batch.setViewTransform(viewMat);
-        // This is the main view / projection transform that will be reused later on
-        batch.saveViewProjectionTransform(_transformSlot);
-        // Copy it to the deferred transform for the lighting pass
-        batch.copySavedViewProjectionTransformToBuffer(_transformSlot, frameTransform->getFrameTransformBuffer()._buffer,
-                                                       sizeof(DeferredFrameTransform::DeferredFrameInfo));
-    });
+    frameTransform->update(renderContext->args, jitter);
 }
