@@ -96,10 +96,13 @@ void RenderDeferredTask::configure(const Config& config) {
 
 void RenderDeferredTask::build(JobModel& task, const render::Varying& input, render::Varying& output, render::CullFunctor cullFunctor, uint transformOffset, size_t depth) {
     // Prepare the ShapePipelines
-    ShapePlumberPointer shapePlumberDeferred = std::make_shared<ShapePlumber>();
-    initDeferredPipelines(*shapePlumberDeferred, FadeEffect::getBatchSetter(), FadeEffect::getItemUniformSetter());
-    ShapePlumberPointer shapePlumberForward = std::make_shared<ShapePlumber>();
-    initForwardPipelines(*shapePlumberForward);
+    static ShapePlumberPointer shapePlumberDeferred = std::make_shared<ShapePlumber>();
+    static ShapePlumberPointer shapePlumberForward = std::make_shared<ShapePlumber>();
+    static std::once_flag once;
+    std::call_once(once, [] {
+        initDeferredPipelines(*shapePlumberDeferred, FadeEffect::getBatchSetter(), FadeEffect::getItemUniformSetter());
+        initForwardPipelines(*shapePlumberForward);
+    });
 
     uint backgroundViewTransformSlot = render::RenderEngine::TS_BACKGROUND_VIEW + transformOffset;
     uint mainViewTransformSlot = render::RenderEngine::TS_MAIN_VIEW + transformOffset;
@@ -216,7 +219,7 @@ void RenderDeferredTask::build(JobModel& task, const render::Varying& input, ren
     task.addJob<DrawHaze>("DrawHazeDeferred", drawHazeInputs, depth > 0);
 
     // Render transparent objects forward in LightingBuffer
-    const auto transparentsInputs = RenderTransparentDeferred::Inputs(transparents, hazeFrame, lightFrame, lightingModel, lightClusters, shadowFrame, deferredFrameTransform).asVarying();
+    const auto transparentsInputs = RenderTransparentDeferred::Inputs(transparents, hazeFrame, lightFrame, lightingModel, lightClusters, shadowFrame, deferredFrameTransform, deferredFramebuffer).asVarying();
     task.addJob<RenderTransparentDeferred>("DrawTransparentDeferred", transparentsInputs, shapePlumberDeferred, mainViewTransformSlot);
 
     // Highlight 
@@ -465,12 +468,15 @@ void RenderTransparentDeferred::run(const RenderContextPointer& renderContext, c
     const auto& lightClusters = inputs.get4();
     // Not needed yet: const auto& shadowFrame = inputs.get5();
     const auto& deferredFrameTransform = inputs.get6();
+    auto &deferredFramebuffer = inputs.get7();
     auto deferredLightingEffect = DependencyManager::get<DeferredLightingEffect>();
 
     RenderArgs* args = renderContext->args;
 
     gpu::doInBatch("RenderTransparentDeferred::run", args->_context, [&](gpu::Batch& batch) {
         args->_batch = &batch;
+
+        batch.setFramebuffer(deferredFramebuffer->getLightingFramebuffer());
         
         // Setup camera, projection and viewport for all items
         batch.setViewportTransform(args->_viewport);
