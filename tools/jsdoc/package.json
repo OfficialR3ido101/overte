@@ -8,7 +8,7 @@
     "jsdoc": "^3.6.2",
     "pretty": "^2.0.0",
     "request": "^2.85.0",
-    "rimraf": "^2.6.2"
+    "rimraf": "^6.1.1"
   },
   "private": true
 }
